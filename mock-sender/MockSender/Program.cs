@@ -7,6 +7,7 @@ int targetPort = 5500;
 
 using var waveIn = new WaveInEvent();
 waveIn.WaveFormat = new WaveFormat(48000, 1);
+waveIn.DeviceNumber = 1;
 waveIn.BufferMilliseconds = 20;
 
 waveIn.DataAvailable += (s, e) =>
