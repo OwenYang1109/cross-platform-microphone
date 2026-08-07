@@ -1,8 +1,21 @@
-﻿using System.Net.Sockets;
-using System.Text;
+﻿using NAudio.Wave;
+using System.Net.Sockets;
 
 UdpClient sender = new UdpClient();
-byte[] message = Encoding.UTF8.GetBytes("test packet");
+string targetIP = "127.0.0.1";
+int targetPort = 5500;
 
-sender.Send(message, message.Length, "127.0.0.1", 5500);
-Console.WriteLine("Sent");
+using var waveIn = new WaveInEvent();
+waveIn.WaveFormat = new WaveFormat(48000, 1);
+waveIn.DeviceNumber = 1;
+waveIn.BufferMilliseconds = 20;
+
+waveIn.DataAvailable += (s, e) =>
+{
+    sender.Send(e.Buffer, e.BytesRecorded, targetIP, targetPort);
+};
+
+waveIn.StartRecording();
+Console.WriteLine("Streaming mic audio... press Enter to stop");
+Console.ReadLine();
+waveIn.StopRecording();
