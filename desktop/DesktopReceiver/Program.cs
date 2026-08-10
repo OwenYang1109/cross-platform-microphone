@@ -1,19 +1,9 @@
-﻿using NAudio.Wave;
-using System.Net;
-using System.Net.Sockets;
+﻿using MicCore;
 
-UdpClient receiver = new UdpClient(5500);
-Console.WriteLine("Listening on port 5500...");
+var receiver = new AudioReceiver();
+receiver.Start(5500);
 
-var waveFormat = new WaveFormat(48000, 1);
-var buffer = new BufferedWaveProvider(waveFormat);
-using var waveOut = new WaveOutEvent();
-waveOut.Init(buffer);
-waveOut.Play();
+Console.WriteLine("Receiving on port 5500, Press Enter to stop");
+Console.ReadLine();
 
-while (true);
-{
-    IPEndPoint remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
-    byte[] data = receiver.Receive(ref remoteEndPoint);
-    buffer.AddSamples(data, 0, data.Length);
-}
+receiver.Stop();
