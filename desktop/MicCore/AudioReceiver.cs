@@ -1,6 +1,7 @@
 using NAudio.Wave;
 using System.Net;
 using System.Net.Sockets;
+using NAudio.CoreAudioApi;
 
 namespace MicCore;
 
@@ -10,12 +11,28 @@ public class AudioReceiver
     private WaveOutEvent? waveOut;
     private bool isRunning = false;
 
-    public void Start(int port)
+    public void Start(int port, string outputDeviceName)
     {
+        var enumerator = new MMDeviceEnumerator();
+        var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+
+        int deviceIndex = -1;
+        for(int i = 0; i < devices.Count; i++) {
+            if(devices[i].FriendlyName == outputDeviceName) {
+                deviceIndex = i;
+                break;
+            }
+        }
+
+        if(deviceIndex == -1) {
+            throw new ArgumentException($"DEvice '{outputDeviceName}' not found.");
+
+        }
+
         var waveFormat = new WaveFormat(48000, 1);
         var buffer = new BufferedWaveProvider(waveFormat);
         waveOut = new WaveOutEvent();
-        waveOut.DeviceNumber = 1; // Cable Output
+        waveOut.DeviceNumber = deviceIndex;
         waveOut.Init(buffer);
         waveOut.Play();
 
@@ -38,5 +55,11 @@ public class AudioReceiver
         isRunning = false;
         receiver?.Close();
         waveOut?.Stop();
+    }
+
+    public static List<string> GetOutputDevices() {
+        var enumerator = new MMDeviceEnumerator();
+        var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+        return devices.Select(d => d.FriendlyName).ToList();
     }
 }
