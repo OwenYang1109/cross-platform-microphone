@@ -23,7 +23,13 @@ Currently designing project structure and communication protocol between the des
 ## Roadmap
 
 - [x] Repo setup
-TBD
+- [x] Define phone ↔ PC communication protocol
+- [x] Desktop app: receive and play audio stream
+- [x] Desktop app: capture and send audio stream (mock sender, standing in for real phone)
+- [x] Desktop app: expose received audio as a virtual microphone device (via VB-CABLE)
+- [ ] Desktop app: user interface (MicUI)
+- [ ] Mobile app: capture and send audio stream (blocked. requires Mac access)
+- [ ] Future: webcam, keyboard/mouse control, clipboard sync, file transfer, ...
 
 ## Contributors
 
