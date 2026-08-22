@@ -16,6 +16,7 @@ public class AudioReceiver
 {   
     private UdpClient? receiver;
     private WaveOutEvent? waveOut;
+    private uint expectedSequenceNumber = 0;
     private bool isRunning = false;
 
     // Define Start method for DesktopReceiver.cs 
@@ -64,9 +65,19 @@ public class AudioReceiver
                 // background loop(network drops, etc)
                 try {
                     IPEndPoint remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
-                    byte[] data = receiver.Receive(ref remoteEndPoint);
+                    byte[] rawData = receiver.Receive(ref remoteEndPoint);
+                    uint seqNum = BitConverter.ToUInt32(rawData, 0);
+
+                    byte[] audioData = new byte[rawData.Length - 4];
+                    Console.WriteLine($"Received {audioData.Length} bytes, seq {seqNum}");
+                    Array.Copy(rawData, 4, audioData, 0, audioData.Length);
+
+                    if(seqNum != expectedSequenceNumber) {
+                        Console.WriteLine($"Packet loss detected — expected {expectedSequenceNumber}, got {seqNum}");
+                    }
+                    expectedSequenceNumber = seqNum + 1;
                     //Console.WriteLine($"Received {data.Length} bytes");
-                    buffer.AddSamples(data, 0, data.Length);
+                    buffer.AddSamples(audioData, 0, audioData.Length);
                 } catch(Exception ex) when(isRunning) {
                     Console.WriteLine($"Receive error: {ex.Message}");
                 }
