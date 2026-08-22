@@ -16,6 +16,10 @@ public class AudioSender
 {
     private UdpClient sender = new UdpClient();
     private WaveInEvent? waveIn;
+    // uint is an unsigned integer. Can only be 0 or positive
+    // Sequence numbers will only count upwards so there is no 
+    // reason for it to be negative.
+    private uint sequenceNumber = 0;
     
     // Defines Start method for MockSender.cs(Later on from iPhone)
     // Starts capturing from the given input device and streams audio
@@ -53,7 +57,12 @@ public class AudioSender
     // chunk, since NAudio reuses the same buffer array.
     waveIn.DataAvailable += (s, e) =>
     {
-        sender.Send(e.Buffer, e.BytesRecorded, targetIp, targetPort);
+        byte[] packet = new byte[4 + e.BytesRecorded];
+        BitConverter.GetBytes(sequenceNumber).CopyTo(packet, 0);
+        Array.Copy(e.Buffer, 0, packet, 4, e.BytesRecorded);
+
+        sender.Send(packet, packet.Length, targetIp, targetPort);
+        sequenceNumber++;
     };
 
     waveIn.StartRecording();
